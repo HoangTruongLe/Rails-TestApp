@@ -11,21 +11,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170109104100) do
+ActiveRecord::Schema.define(version: 20170110072423) do
 
   create_table "articles", force: :cascade do |t|
     t.string   "title"
     t.text     "description"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
+    t.integer  "user_id"
   end
 
   create_table "users", force: :cascade do |t|
     t.text     "username"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.text     "password"
     t.text     "email"
+    t.string   "password_digest"
   end
 
 end
