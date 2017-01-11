@@ -8,10 +8,14 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-<div class="container">
-  <%= yield %>
-</div>
 
+  <%= render "layouts/navigation" %>
+  <div class="container">
+    <%= render "layouts/messages" %>
+    <%= yield %>
+  </div>
 
+<script
+  <%= javascript_include_tag "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js", "data-turbolinks-eval" => false %>
 </body>
 </html>

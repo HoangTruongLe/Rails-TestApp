@@ -1,4 +1,12 @@
 class UsersController < ApplicationController
+    before_action :set_user, only: [:edit, :update, :destroy, :show]
+    before_action :require_same_user, only: [:edit, :update, :destroy]
+    before_action :require_admin, only: [:destroy]
+    
+    def index
+        @users = User.paginate(page: params[:page], per_page: 5)
+    end
+   
     def new
         @user = User.new
     end
@@ -6,6 +14,7 @@ class UsersController < ApplicationController
     def create
        @user = User.new(user_params)
        if @user.save
+          session[:user_id] = @user.id
           flash[:success] = "welcome to the alpha blog #{@user.username}" 
           redirect_to @user
        else
@@ -13,16 +22,12 @@ class UsersController < ApplicationController
        end
     end
     
-    def user_params
-        params.require(:user).permit(:username,:email,:password)
-    end
+
     
     def edit
-        @user = User.find(params[:id])    
     end
     
     def update
-        @user = User.find(params[:id])
         if @user.update
             flash[:success] = "Your account was update successfully"
             redirect_to @user
@@ -32,6 +37,36 @@ class UsersController < ApplicationController
     end
     
     def show
+        @user_articles = @user.articles.paginate(page: params[:page], per_page: 5)
+    end
+    
+    def destroy
+        @user.destroy
+        flash[:danger] = "User and all articles created have been deleted"
+        redirect_to users_path
+    end
+    
+    private
+    def user_params
+        params.require(:user).permit(:username,:email,:password)
+    end
+    
+    def set_user
         @user = User.find(params[:id])
     end
+    
+    def require_same_user
+      if !logged_in? or !(current_user == @user or current_user.admin?)
+        flash[:danger] = "You can only modify your own account"
+        redirect_to root_path
+      end
+    end
+    
+    def require_admin
+        if logged_in? and !current_user.admin?
+            flash[:danger] = "Only admin user can perform that action"
+            redirect_to root_path
+        end
+    end
+    
 end

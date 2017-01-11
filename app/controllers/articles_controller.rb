@@ -1,10 +1,12 @@
 class ArticlesController < ApplicationController
   before_action :set_article, only: [:show, :edit, :update, :destroy]
+  before_action :require_user, except: [:index, :show]
+  before_action :require_same_user_or_admin, only: [:edit, :update, :delete]
 
   # GET /articles
   # GET /articles.json
   def index
-    @articles = Article.all
+    @articles = Article.paginate(page: params[:page], per_page: 5 )
   end
 
   # GET /articles/1
@@ -24,12 +26,12 @@ class ArticlesController < ApplicationController
   # POST /articles
   # POST /articles.json
   def create
-    debugger
     @article = Article.new(article_params)
-    @article.user = User.first
+    @article.user = current_user
     respond_to do |format|
       if @article.save
-        format.html { redirect_to @article, notice: 'Article was successfully created.' }
+        flash[:success] = "Article was successfully created."
+        format.html { redirect_to @article }
         format.json { render :show, status: :created, location: @article }
       else
         format.html { render :new }
@@ -43,7 +45,8 @@ class ArticlesController < ApplicationController
   def update
     respond_to do |format|
       if @article.update(article_params)
-        format.html { redirect_to @article, notice: 'Article was successfully updated.' }
+        flash[:success] = "Article was successfully updated."
+        format.html { redirect_to @article}
         format.json { render :show, status: :ok, location: @article }
       else
         format.html { render :edit }
@@ -57,7 +60,7 @@ class ArticlesController < ApplicationController
   def destroy
     @article.destroy
     respond_to do |format|
-      format.html { redirect_to articles_url, notice: 'Article was successfully destroyed.' }
+      format.html { redirect_to articles_url, danger: 'Article was successfully destroyed.' }
       format.json { head :no_content }
     end
   end
@@ -71,5 +74,14 @@ class ArticlesController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def article_params
       params.require(:article).permit(:title, :description)
+    end
+    
+    def require_same_user_or_admin
+      if current_user == @article.user or current_user.admin?
+        return
+      else
+        flash[:danger] = "You can only modify your own article"
+        redirect_to root_path
+      end
     end
 end
